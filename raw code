@@ -1,0 +1,69 @@
+
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace cv;
+using namespace std;
+
+char get_char(uchar luminance)
+{
+    const string chars = " ,./B@+-_:;'";
+    float ratio = (float)luminance / 255.0;
+    int index = static_cast<int>(ratio * (chars.size() - 1));
+    return chars[index];
+}
+
+
+void video_to_ascii(const string& video_path, int output_width = 120, int output_height = 60)
+{
+    VideoCapture cap(video_path);
+
+    if (!cap.isOpened()) {
+        cerr << "Error opening video file" << endl;
+        return;
+    }
+
+    double fps = cap.get(CAP_PROP_FPS);
+    cout << "FPS: " << fps << endl;
+    cout << "Output size: " << output_width << "x" << output_height << endl;
+
+    Mat frame, gray, resized;
+
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) {
+            break;
+        }
+
+        cvtColor(frame, gray, COLOR_BGR2GRAY);
+        resize(gray, resized, Size(output_width, output_height), INTER_LINEAR);
+
+        string ascii_frame;
+        for (int i = 0; i < resized.rows; ++i) {
+            for (int j = 0; j < resized.cols; ++j) {
+                uchar luminance = resized.at<uchar>(i, j);
+                ascii_frame += get_char(luminance);
+            }
+            ascii_frame += "\n";
+        }
+
+        cout << ascii_frame;
+
+        system("cls"); 
+
+        this_thread::sleep_for(chrono::milliseconds(static_cast<int>(1000.0 / fps)));
+    }
+    
+    cap.release();
+}
+
+int main() {
+  \\ any video
+    string video_path = "C:\\视频\\shanghai.mp4";
+    int output_width = 120;
+    int output_height = 60;
+    video_to_ascii(video_path, output_width, output_height);
+    return 0;
+}
